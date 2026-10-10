@@ -1,5 +1,9 @@
 # Project ZENO — An Interactive Journey into Infinity
 
+> Amended 2026-10-10 to reconcile with the CEO and engineering plan reviews
+> (`docs/ceo-plan.md`, `docs/eng-plan.md`). Five corrections applied; the
+> diff shows exactly what changed.
+
 ## 1. Vision and Product Goals
 
 Design and develop a visually stunning, interactive 3D experience that brings Zeno's paradox to life through the gap between a human thumb and index finger.
@@ -20,7 +24,9 @@ The experience must be:
 - **Scientifically credible:** Visual representations and explanations must respect the differences between mathematical scales and physical structures.
 - **Continuous:** Users can move freely between scales without navigating disconnected pages.
 - **Accessible:** The experience works across mobile devices and desktop browsers.
-- **Internationalized:** Japanese and English are supported from the beginning.
+- **Internationalized:** English is the primary language for v1, with the full
+  internationalization plumbing in place from the beginning so further
+  languages land as string contributions rather than rework.
 
 Do not build a conventional educational dashboard, a collection of disconnected screens, or a generic science-themed website.
 
@@ -231,6 +237,8 @@ However, distinguish between actual changes in physical scale and changes in vis
 
 The application should not imply that every scientific structure is literally visible by simply magnifying the original hand indefinitely.
 
+**The gap, not the hand, is the invariant that survives the whole journey.** Ten millimetres to atomic scale spans eight orders of magnitude — about 27 halvings — and around the cell stage there is no hand left to frame. The hand is the prologue of the journey and the content of its first stage, not its frame. The two fingertip surfaces become the two walls of every stage, and the camera always flies between them. A single contour and line visual language unifies the stages, so a fingerprint ridge, a cell membrane, a chemical bond, and an orbital contour are the same kind of mark at different zoom.
+
 ### Stage 1: Human scale
 
 Show the recognizable hand and the gap between the fingertips.
@@ -283,6 +291,8 @@ Use a scientifically informed representation, such as a simplified atomic model 
 
 Clearly distinguish conceptual models from literal depictions of physical reality.
 
+The choice between these representations is an architecture decision, not a Phase 3 detail, and must be settled in the plan before the stage is authored: Bohr shells, electron probability density, and quantum-cloud-with-collapse differ enormously in cost and in mobile rendering budget, and the probability-density path in particular changes the performance story. It is recorded as unresolved in `docs/ceo-plan.md`.
+
 The final stage should communicate the enormous difference between the familiar human scale and atomic dimensions.
 
 ### Transitions between stages
@@ -333,7 +343,9 @@ The application should support mathematically precise halving and doubling withi
 
 Use a consistent base unit internally, such as meters, and convert to appropriate display units when presenting values.
 
-The implementation must define reasonable minimum and maximum values and handle floating-point precision and rendering limitations gracefully.
+The implementation must define reasonable minimum and maximum values and handle rendering limitations gracefully.
+
+Floating-point precision is not the risk it first appears to be. In a float64, 27 halvings — or roughly 109, to the Planck length from a 10 mm origin — is trivial in magnitude and retains about 15 significant digits throughout. Do not engineer around a phantom. The real precision problems are display rounding and unit selection, and the representation's floor must render as the void rather than as `NaN` or `0 mm` for a nonzero gap.
 
 Do not imply that the gap physically reaches zero after a finite number of halvings.
 
@@ -465,9 +477,17 @@ Prioritize:
 
 The experience must remain usable without requiring a high-end GPU.
 
-## 11. Japanese and English Localization
+## 11. Localization
 
-Japanese and English must be supported from the beginning.
+**English is the primary language.** The first release ships English-only, but
+with the full localization plumbing in place: externalized strings, a
+locale-aware formatter, and right-to-left-aware layout using logical CSS
+properties.
+
+Kurdish Sorani, Kurdish Kurmanji, Arabic, Chinese, and Japanese follow as
+string contributions with no layout rework. Kurdish Sorani and Arabic are
+right-to-left, so mirroring the HUD, slider, and side panel must be built once,
+up front, rather than retrofitted.
 
 Localization is an architectural requirement, not a final development phase.
 
@@ -508,6 +528,12 @@ All primary interactions must have an accessible alternative.
 ## 13. Development Plan
 
 Build the application incrementally, validating the interaction model before investing heavily in detailed graphics.
+
+### Phase 0: The vertical slice
+
+Before Phase 1 and Phase 2 as written, build one transition end to end at full fidelity: **hand to fingerprint**. Scale navigation cannot be validated against grey boxes, and proving the transition language, the wall contract, and the motion design on a single stage is cheaper than discovering it fails on the fifth.
+
+Once the slice holds, replicate the pattern across the remaining stages.
 
 ### Phase 1: Core interaction prototype
 
