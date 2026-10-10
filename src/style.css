@@ -4,6 +4,7 @@
   --scene: #121212;
   --text: #f2f0e6;
   --accent: #ddeae0;
+  --muted: 0.55;
   font-family:
     system-ui,
     -apple-system,
@@ -17,47 +18,103 @@
   box-sizing: border-box;
 }
 
+html,
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100svh;
+  height: 100%;
+  overflow: hidden;
 }
 
-.stage {
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+#app {
+  position: relative;
+  width: 100svw;
+  height: 100svh;
+}
+
+#app canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none; /* the canvas owns pinch; the page owns scroll elsewhere */
+}
+
+#hud {
+  position: absolute;
+  inset: 0;
   display: grid;
-  place-content: center;
+  grid-template-rows: auto 1fr auto;
   justify-items: center;
-  gap: 0.5rem;
-  min-height: 100svh;
-  padding: 1.5rem;
+  padding: clamp(1rem, 4svh, 2.5rem) 1.5rem;
+  pointer-events: none;
   text-align: center;
 }
 
-.scale-indicator {
+#hud > * {
+  pointer-events: auto;
+}
+
+#scale-indicator {
+  margin: 0;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
   color: var(--accent);
   font-size: clamp(1.25rem, 5vw, 2rem);
 }
 
-.milestone {
+#milestone {
+  align-self: center;
   margin: 0;
   font-size: clamp(1.75rem, 8vw, 3.5rem);
   font-weight: 300;
   letter-spacing: -0.02em;
 }
 
-.blurb {
-  margin: 0;
-  max-width: 38ch;
-  opacity: 0.75;
-  line-height: 1.5;
+#counter {
+  margin: 0 0 0.5rem;
+  font-variant-numeric: tabular-nums;
+  opacity: var(--muted);
 }
 
-.counter {
-  font-variant-numeric: tabular-nums;
-  opacity: 0.55;
+#controls {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+button {
+  min-width: 44px;
+  min-height: 44px; /* touch target floor */
+  padding: 0 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+button:hover,
+button:focus-visible {
+  border-color: var(--accent);
+  outline: none;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+#hint {
+  margin: 0.75rem 0 0;
+  opacity: var(--muted);
+  font-size: 0.85rem;
 }
 
 @media (prefers-reduced-motion: reduce) {

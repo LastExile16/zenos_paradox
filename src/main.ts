@@ -1,50 +1,72 @@
 /**
- * Entry point — wires the layers together so the toolchain proves out end to
- * end.
+ * Entry point.
  *
- * This is not the shipped experience: there is no Three.js canvas, no pinch
- * handling, and no stage rendering yet. Those land once the vertical slice's
- * interaction surface is exercised against a real canvas. What is here is the
- * contract between the layers, driven by the one input path that exists in
- * the browser today — the keyboard — so nothing is left unverified by
- * invention.
+ * Drives the real scene: the arbitrator holds the gap, the keyboard and the
+ * buttons write through the same path, and the scene chases the model value
+ * every frame. The model owns the mathematics; nothing here may change it
+ * except through the arbitrator.
  */
 
 import { formatGap } from "@/model/scale";
 import { createArbitrator, readJourney } from "@/input/arbitrator";
 import { applyKey } from "@/a11y/keyboard";
-import { describeJourney } from "@/a11y/announcer";
+import { createScene } from "@/render/scene";
+import { createHandStage } from "@/stages/stage1-hand";
+import { createFingerprintStage } from "@/stages/stage2-fingerprint";
 import "./style.css";
 
-const app = document.querySelector("#app")!;
+const container = document.querySelector<HTMLElement>("#app")!;
 const arbitrator = createArbitrator(0.01);
+const journey = {
+  stages: [createHandStage(), createFingerprintStage()],
+};
+const scene = createScene(container, journey, arbitrator.gapM);
 
-function render(): void {
-  const journey = readJourney(arbitrator.gapM);
-  const n = Math.round(journey.halvings);
+const indicator = document.querySelector<HTMLElement>("#scale-indicator")!;
+const milestone = document.querySelector<HTMLElement>("#milestone")!;
+const counter = document.querySelector<HTMLElement>("#counter")!;
 
-  app.innerHTML = `
-    <main class="stage">
-      <p class="scale-indicator" aria-live="polite">${formatGap(journey.gapM)}</p>
-      <h1 class="milestone">${journey.milestone.label}</h1>
-      <p class="blurb">${journey.milestone.blurb}</p>
-      <p class="counter" aria-hidden="true">n = ${n}</p>
-      <p class="hint">Halve: ↓ / ← · Double: ↑ / → · Reset: R</p>
-    </main>
-  `;
-
-  // The screen-reader path announces the same journey the sighted one shows.
-  document.title = `${formatGap(journey.gapM)} · ${journey.milestone.label}`;
+function updateHud(): void {
+  const state = readJourney(arbitrator.gapM);
+  indicator.textContent = formatGap(state.gapM);
+  milestone.textContent = state.milestone.label;
+  counter.textContent = `n = ${Math.round(state.halvings)}`;
+  document.title = `${formatGap(state.gapM)} · ${state.milestone.label}`;
 }
 
+function onHalve(): void {
+  arbitrator.halve();
+  updateHud();
+}
+
+function onDouble(): void {
+  arbitrator.double();
+  updateHud();
+}
+
+function onReset(): void {
+  arbitrator.reset();
+  updateHud();
+}
+
+document.querySelector<HTMLButtonElement>("#halve")!.addEventListener("click", onHalve);
+document.querySelector<HTMLButtonElement>("#double")!.addEventListener("click", onDouble);
+document.querySelector<HTMLButtonElement>("#reset")!.addEventListener("click", onReset);
+
 window.addEventListener("keydown", (event) => {
-  const handled = applyKey(arbitrator, event);
-  if (handled) {
+  if (applyKey(arbitrator, event)) {
     event.preventDefault();
-    render();
-    const journey = readJourney(arbitrator.gapM);
-    console.info(describeJourney(journey));
+    updateHud();
   }
 });
 
-render();
+updateHud();
+
+let last = performance.now();
+function loop(now: number): void {
+  const dt = Math.min((now - last) / 1000, 0.1);
+  last = now;
+  scene.tick(arbitrator.gapM, dt);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);

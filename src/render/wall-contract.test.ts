@@ -70,6 +70,22 @@ describe("wall contract", () => {
     }
   });
 
+  it("never lets the near plane clip the gap's own walls", () => {
+    // The walls surround the gap centre, and the camera looks at that centre, so
+    // anything closer to the camera than the centre is between the two. A near
+    // plane beyond the camera's distance to the target saws the walls off —
+    // this rendered a black frame at the hand stage's home gap, where the
+    // camera stands 8 mm from the target.
+    for (const stage of sut) {
+      for (const gap of [stage.homeGapM, stage.homeGapM * 1e3, stage.homeGapM * 1e-3]) {
+        const frame = stage.frame(gap, ASPECT);
+        const standOff = frame.position.length();
+        expect(frame.near).toBeLessThan(standOff);
+        expect(frame.far).toBeGreaterThan(standOff);
+      }
+    }
+  });
+
   it("keeps the composition identical across stages at the same gap", () => {
     // The cross-fade premise: at one gap, both stages put the walls in the
     // same place, so switching content never moves the frame.

@@ -31,6 +31,14 @@ export interface CameraFrame {
   readonly position: THREE.Vector3;
   readonly target: THREE.Vector3;
   readonly fov: number;
+  /**
+   * Depth bounds. The camera stands about one gap-width from the walls, so a
+   * fixed near/far cannot survive 27 orders of magnitude: at the hand stage's
+   * home gap the camera sits 8 mm from the target, and a 10 mm near plane
+   * would clip the pads away. Both scale with the camera distance.
+   */
+  readonly near: number;
+  readonly far: number;
 }
 
 export type WallSide = "left" | "right";
@@ -59,6 +67,10 @@ export const FRAME_MARGIN = 1.25;
 /** The camera sits slightly above the gap axis, looking down into it. */
 const CAMERA_PITCH_RATIO = 0.15;
 
+/** Depth bounds as a multiple of the camera's distance from the gap. */
+const NEAR_RATIO = 1e-3;
+const FAR_RATIO = 1e2;
+
 /**
  * Derive the framing for a gap width and viewport aspect.
  *
@@ -74,6 +86,8 @@ export function frameGap(gapM: number, aspect: number): CameraFrame {
     position: new THREE.Vector3(0, gapM * CAMERA_PITCH_RATIO, distance),
     target: new THREE.Vector3(0, 0, 0),
     fov: HOUSE_FOV_DEG,
+    near: distance * NEAR_RATIO,
+    far: distance * FAR_RATIO,
   };
 }
 
