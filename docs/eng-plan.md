@@ -30,15 +30,15 @@ Coverage diagram: 5/9 number-model paths tested (55%); 1/1 transition E2E planne
 
 Vertical-slice order: E1 → E2 → E3 → E4, then E5/E6/E7 in parallel.
 
-| ID | Pri | Component | Title | Files |
-|----|-----|-----------|-------|-------|
-| E1 | P1 | toolchain | Initialize Vite + TypeScript project | `package.json`, `tsconfig.json`, `vite.config.ts`, `.github/workflows/ci.yml` |
-| E2 | P1 | scale model | Implement number model property tests | `src/model/scale.ts`, `src/model/scale.test.ts` |
-| E3 | P1 | wall contract | Define WallContract interface and hand→fingerprint stage | `src/render/wall-contract.ts`, `src/stages/stage1-hand.ts`, `src/stages/stage2-fingerprint.ts` |
-| E4 | P1 | input | Build single-write-path input arbitrator with source tracking | `src/input/arbitrator.ts` |
-| E5 | P2 | transition | Implement full-fidelity hand→fingerprint transition | `src/transition.ts`, `src/render/animator.ts` |
-| E6 | P2 | a11y | Keyboard + screen-reader paths with per-stage text alternatives | `src/a11y/announcer.ts`, `src/a11y/keyboard.ts` |
-| E7 | P2 | perf | Add degradation ladder scaffold (DPR cap, shadow tiers, LOD) | `src/perf/quality.ts` |
+| ID | Pri | Component | Title | Files | Status |
+|----|-----|-----------|-------|-------|--------|
+| E1 | P1 | toolchain | Initialize Vite + TypeScript project | `package.json`, `tsconfig.json`, `vite.config.ts`, `.github/workflows/ci.yml` | done |
+| E2 | P1 | scale model | Implement number model property tests | `src/model/scale.ts`, `src/model/scale.test.ts` | done |
+| E3 | P1 | wall contract | Define WallContract interface and hand→fingerprint stage | `src/render/wall-contract.ts`, `src/stages/stage1-hand.ts`, `src/stages/stage2-fingerprint.ts` | done |
+| E4 | P1 | input | Build single-write-path input arbitrator with source tracking | `src/input/arbitrator.ts` | done |
+| E5 | P2 | transition | Implement full-fidelity hand→fingerprint transition | `src/transition.ts`, `src/render/animator.ts` | done |
+| E6 | P2 | a11y | Keyboard + screen-reader paths with per-stage text alternatives | `src/a11y/announcer.ts`, `src/a11y/keyboard.ts` | done |
+| E7 | P2 | perf | Add degradation ladder scaffold (DPR cap, shadow tiers, LOD) | `src/perf/quality.ts` | done |
 
 ## Architecture decisions locked by this review (decision `22c54da1`)
 
