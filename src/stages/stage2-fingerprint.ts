@@ -14,6 +14,7 @@ import * as THREE from "three";
 import {
   type CameraFrame,
   type WallContract,
+  type WallExtent,
   type WallSurfaces,
   frameGap,
   mountWall,
@@ -76,12 +77,20 @@ export function createFingerprintStage(): WallContract {
     return { left, right };
   }
 
+  function extentAt(gapM: number): WallExtent {
+    const scale = gapM / FINGERPRINT_HOME_GAP_M;
+    return {
+      halfWidth: gapM / 2 + RIDGE_AMPLITUDE * scale,
+      halfHeight: (WALL_HEIGHT / 2) * scale,
+    };
+  }
+
   return {
     id: "fingerprint",
     homeGapM: FINGERPRINT_HOME_GAP_M,
     surfaces: surfacesAt,
     frame: (gapM: number, aspect: number): CameraFrame =>
-      frameGap(gapM, aspect),
+      frameGap(gapM, aspect, extentAt(gapM)),
     dispose(): void {
       disposeWallGeometries(left);
       disposeWallGeometries(right);

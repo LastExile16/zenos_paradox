@@ -11,7 +11,7 @@
  * smoothly as the user approaches and out as they pass — never a hard cut.
  */
 
-import type { WallContract } from "@/render/wall-contract";
+import { type CameraFrame, type WallContract } from "@/render/wall-contract";
 
 /** A stage paired with how strongly it should currently be shown. */
 export interface StageBlend {
@@ -56,6 +56,39 @@ export function blendStages(journey: Journey, gapM: number): StageBlend[] {
   // Normalise so the visible stages sum to 1, keeping the scene's overall
   // brightness constant through a cross-fade.
   return blends.map((b) => ({ ...b, weight: b.weight / total }));
+}
+
+/**
+ * The camera framing for `gapM`, blended across the same stages as the
+ * cross-fade.
+ *
+ * Each stage frames its own walls — the hand's pads are far wider than the
+ * fingerprint's ridged planes, so a single shared framing would crop one or
+ * leave the other swimming in empty space. Blending with the cross-fade
+ * weights keeps the camera's ride continuous: as one stage's walls dissolve,
+ * the camera is already easing toward the other's framing.
+ */
+export function blendFrame(
+  journey: Journey,
+  gapM: number,
+  aspect: number,
+): CameraFrame {
+  let position = null;
+  let target = null;
+  let fov = 0;
+  let near = 0;
+  let far = 0;
+
+  for (const { stage, weight } of blendStages(journey, gapM)) {
+    const frame = stage.frame(gapM, aspect);
+    position = position === null ? frame.position.clone() : position.addScaledVector(frame.position, weight);
+    target = target === null ? frame.target.clone() : target.addScaledVector(frame.target, weight);
+    fov += frame.fov * weight;
+    near += frame.near * weight;
+    far += frame.far * weight;
+  }
+
+  return { position: position!, target: target!, fov, near, far };
 }
 
 /**

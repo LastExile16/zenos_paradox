@@ -26,6 +26,21 @@ export interface WallSurfaces {
   readonly right: THREE.Object3D;
 }
 
+/**
+ * How far a stage's walls reach beyond the gap centre at a given gap.
+ *
+ * The walls are bigger than the gap they border — a fingertip pad is wider
+ * than the space between the fingers — so the camera must be told what to
+ * fit. Framing only the gap left the walls cropped to slivers at the frame
+ * edges with dead space between them.
+ */
+export interface WallExtent {
+  /** From the gap centre to a wall's outer edge, across the gap. */
+  readonly halfWidth: number;
+  /** From the gap centre to the top of the walls. */
+  readonly halfHeight: number;
+}
+
 /** Where the camera sits to frame the gap. All derived from the gap width. */
 export interface CameraFrame {
   readonly position: THREE.Vector3;
@@ -74,14 +89,24 @@ const FAR_RATIO = 1e2;
 /**
  * Derive the framing for a gap width and viewport aspect.
  *
- * Portrait viewports (aspect < 1) have a narrower horizontal field of view, so
- * the camera must stand back further to fit the gap. Framing is never stored;
- * it is recomputed from the gap whenever the user moves.
+ * The camera stands back far enough to see both walls whole — the walls, not
+ * the gap, are what fills the frame — and backs off further in portrait, where
+ * the narrower horizontal field of view needs more room. Framing is never
+ * stored; it is recomputed from the gap whenever the user moves.
  */
-export function frameGap(gapM: number, aspect: number): CameraFrame {
+export function frameGap(
+  gapM: number,
+  aspect: number,
+  extent: WallExtent,
+): CameraFrame {
   const vFov = THREE.MathUtils.degToRad(HOUSE_FOV_DEG);
   const hFov = 2 * Math.atan(Math.tan(vFov / 2) * Math.max(aspect, 1e-6));
-  const distance = ((gapM / 2) * FRAME_MARGIN) / Math.tan(hFov / 2);
+  // Stand back far enough for whichever axis is tighter: the pads are taller
+  // than the gap is wide, so in landscape it is the height that sets the frame.
+  const distance = Math.max(
+    (extent.halfWidth * FRAME_MARGIN) / Math.tan(hFov / 2),
+    (extent.halfHeight * FRAME_MARGIN) / Math.tan(vFov / 2),
+  );
   return {
     position: new THREE.Vector3(0, gapM * CAMERA_PITCH_RATIO, distance),
     target: new THREE.Vector3(0, 0, 0),

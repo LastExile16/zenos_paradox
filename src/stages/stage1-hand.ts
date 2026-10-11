@@ -13,6 +13,7 @@ import * as THREE from "three";
 import {
   type CameraFrame,
   type WallContract,
+  type WallExtent,
   type WallSurfaces,
   frameGap,
   mountWall,
@@ -51,12 +52,22 @@ export function createHandStage(): WallContract {
     return { left, right };
   }
 
+  function extentAt(gapM: number): WallExtent {
+    const scale = gapM / HAND_HOME_GAP_M;
+    // The pad's outer edge stands off from the gap boundary by its offset
+    // plus its own radius, both of which scale with the gap.
+    return {
+      halfWidth: gapM / 2 + 2 * PAD_RADIUS * scale,
+      halfHeight: (PAD_LENGTH / 2 + PAD_RADIUS) * scale,
+    };
+  }
+
   return {
     id: "hand",
     homeGapM: HAND_HOME_GAP_M,
     surfaces: surfacesAt,
     frame: (gapM: number, aspect: number): CameraFrame =>
-      frameGap(gapM, aspect),
+      frameGap(gapM, aspect, extentAt(gapM)),
     dispose(): void {
       disposeWallGeometries(left);
       disposeWallGeometries(right);

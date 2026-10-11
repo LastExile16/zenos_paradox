@@ -9,8 +9,8 @@
 
 import * as THREE from "three";
 import { approach } from "@/render/animator";
-import { type WallContract, frameGap } from "@/render/wall-contract";
-import { type Journey, blendStages } from "@/transition";
+import { type WallContract } from "@/render/wall-contract";
+import { type Journey, blendFrame, blendStages } from "@/transition";
 
 export interface SceneHandle {
   /** Advance one frame toward the model's target width. */
@@ -105,12 +105,15 @@ export function createScene(
       });
     }
 
-    const frame = frameGap(display, aspect());
-    camera.position.copy(frame.position);
-    camera.lookAt(frame.target);
-    camera.fov = frame.fov;
-    camera.near = frame.near;
-    camera.far = frame.far;
+    // Each stage frames its own walls; blend the candidates by the same
+    // weights as the cross-fade so the camera rides the transition instead
+    // of snapping between framings at a stage boundary.
+    const blended = blendFrame(journey, display, aspect());
+    camera.position.copy(blended.position);
+    camera.lookAt(blended.target);
+    camera.fov = blended.fov;
+    camera.near = blended.near;
+    camera.far = blended.far;
     camera.updateProjectionMatrix();
 
     renderer.render(scene, camera);

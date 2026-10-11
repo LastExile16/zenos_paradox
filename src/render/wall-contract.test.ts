@@ -49,16 +49,23 @@ describe("wall contract", () => {
     }
   });
 
-  it("frames the gap symmetrically, with the camera backing off in portrait", () => {
+  it("frames the whole wall on both axes, backing off in portrait when width binds", () => {
+    // The camera must clear the stage's own extent, not just the gap: the pads
+    // are far wider than the gap between them, and framing the gap alone left
+    // them cropped to slivers at the frame edges.
     for (const stage of sut) {
-      const landscape = stage.frame(stage.homeGapM, 16 / 9);
-      const portrait = stage.frame(stage.homeGapM, 9 / 16);
+      for (const aspect of [16 / 9, 1, 9 / 16]) {
+        const gap = stage.homeGapM;
+        const frame = stage.frame(gap, aspect);
 
-      expect(landscape.position.z).toBeGreaterThan(0);
-      expect(landscape.target.length()).toBe(0);
+        const vFov = (Math.PI / 180) * frame.fov;
+        const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
+        const visHalfW = frame.position.z * Math.tan(hFov / 2);
+        const visHalfH = frame.position.z * Math.tan(vFov / 2);
 
-      // Narrower horizontal field of view in portrait => camera stands back.
-      expect(portrait.position.z).toBeGreaterThan(landscape.position.z);
+        expect(visHalfW).toBeGreaterThan(gap / 2);
+        expect(visHalfH).toBeGreaterThan(0);
+      }
     }
   });
 
@@ -67,6 +74,29 @@ describe("wall contract", () => {
       const near = stage.frame(stage.homeGapM, ASPECT);
       const far = stage.frame(stage.homeGapM * 4, ASPECT);
       expect(far.position.z / near.position.z).toBeCloseTo(4, 6);
+    }
+  });
+
+  it("fits each wall's full extent with room to spare", () => {
+    // The real invariant: whatever the stage's walls reach to, the frame must
+    // hold. A stage whose walls are taller than the gap is wide is bound by
+    // the vertical axis, so the camera backs off for height instead of width.
+    for (const stage of sut) {
+      const { left, right } = stage.surfaces(stage.homeGapM);
+      const box = new THREE.Box3()
+        .setFromObject(left)
+        .union(new THREE.Box3().setFromObject(right));
+      const halfW = Math.max(Math.abs(box.min.x), Math.abs(box.max.x));
+      const halfH = Math.max(Math.abs(box.min.y), Math.abs(box.max.y));
+
+      const frame = stage.frame(stage.homeGapM, ASPECT);
+      const vFov = (Math.PI / 180) * frame.fov;
+      const hFov = 2 * Math.atan(Math.tan(vFov / 2) * ASPECT);
+
+      expect(frame.position.z * Math.tan(hFov / 2)).toBeGreaterThanOrEqual(halfW);
+      expect(frame.position.z * Math.tan(vFov / 2)).toBeGreaterThanOrEqual(halfH);
+
+      stage.dispose();
     }
   });
 
