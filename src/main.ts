@@ -15,7 +15,7 @@ import { createHandStage } from "@/stages/stage1-hand";
 import { createFingerprintStage } from "@/stages/stage2-fingerprint";
 import "./style.css";
 
-const container = document.querySelector<HTMLElement>("#app")!;
+const container = document.querySelector<HTMLElement>("#scene")!;
 const arbitrator = createArbitrator(0.01);
 const journey = {
   stages: [createHandStage(), createFingerprintStage()],

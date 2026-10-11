@@ -12,17 +12,20 @@
   </head>
   <body>
     <div id="app">
-      <div id="hud">
-        <p id="scale-indicator" aria-live="polite">10 mm</p>
-        <h1 id="milestone">Hand</h1>
-        <p id="counter" aria-hidden="true">n = 0</p>
+      <div id="scene"></div>
+      <aside id="hud">
+        <header id="hud-head">
+          <p id="scale-indicator" aria-live="polite">10 mm</p>
+          <h1 id="milestone">Hand</h1>
+          <p id="counter" aria-hidden="true">n = 0</p>
+        </header>
         <div id="controls">
           <button id="double" type="button" aria-label="Double the gap">Double</button>
           <button id="halve" type="button" aria-label="Halve the gap">Halve</button>
           <button id="reset" type="button" aria-label="Reset the gap">Reset</button>
         </div>
         <p id="hint">Halve: ↓ / ← · Double: ↑ / → · Reset: R</p>
-      </div>
+      </aside>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
